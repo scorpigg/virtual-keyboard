@@ -206,10 +206,10 @@ window.onload = function() {
 
   function keyActive(e){
     let index = keyCodes.indexOf(e.code);
-    if(e.type == 'keydown'){
+    if(e.type == 'keydown' && index != -1){
       keyboard.children[index].classList.add('key_active');
     }
-    if(e.type == 'keyup'){
+    if(e.type == 'keyup' && index != -1){
       keyboard.children[index].classList.remove('key_active');
     }
     if(e.target.classList.contains('key')){
@@ -260,9 +260,9 @@ window.onload = function() {
     // the general condition for 'keyup' and 'keydown'
     let lang = changeLang(e);
     keyActive(e);
-
-    if(e.type == 'keydown'){
-      let index = keyCodes.indexOf(e.code);
+    let index = keyCodes.indexOf(e.code);
+    
+    if(e.type == 'keydown' && index != -1){
       capsLockKeyPress(e);
       let capsLock = isCapsActive();
 
