@@ -186,7 +186,7 @@ window.onload = function() {
         keyboard.classList.add('eng');
         keyboard.classList.remove('rus');
         Array.from(keyboard.children).forEach((key, index) =>{
-          key.innerText = keyCodes[index];
+          key.innerText = keysEng[index];
         })
       }
       setLastLang();
