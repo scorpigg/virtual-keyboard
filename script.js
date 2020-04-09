@@ -69,19 +69,16 @@ window.onload = function() {
   // Save last used lang in the storage
 
   function setLastLang(){
-    let lang = 'eng';
     if(keyboard.classList.contains('eng')){
-      lang = 'eng';
       localStorage.setItem('lang', 'eng');
     }else if(keyboard.classList.contains('rus')){
-      lang = 'rus';
       localStorage.setItem('lang', 'rus');
     }
   }
 
   // Get last used lang from the storage
 
-  function getLastLang(){
+  function getLangFromStorage(){
     if (localStorage.lang == 'eng'){
       keyboard.classList.add('eng');
       keyboardInit(keysEng);
@@ -91,10 +88,10 @@ window.onload = function() {
     }
   }
 
-  getLastLang();
+  getLangFromStorage();
 
-  // Keyboard creation
-    // @keys{array} - array of symbols, letters, numbers
+  /** Keyboard creation
+    * @keys {array} - array of symbols, letters, numbers */
 
   function keyboardInit(keys){
     keys.forEach((key, index) => {
@@ -111,43 +108,45 @@ window.onload = function() {
     });
   }
 
-  // Clicking to CapsLock
-    //@e{object} -  addEventListener function event
+  // Changes the case of letter
+
+  function changeKeyCase(key){
+    if(key.innerText.length == 1){
+      if(key.classList.contains('uppercase') ){
+        key.classList.remove('uppercase');
+        key.classList.add('lowercase');
+      }else{
+        key.classList.remove('lowercase');
+        key.classList.add('uppercase');
+      }
+    }
+  }
+
+  /** Clicking to CapsLock
+    * @e {object} -  addEventListener function event */
 
   function capsLockKeyPress(e){
     const capsLockKey = document.querySelector('.CapsLock');
     if((e.code == 'CapsLock' && e.repeat == false) || e.target.innerText == 'CapsLock'){
       Array.from(keyboard.children).forEach(key =>{
-        if(key.innerText.length == 1){
-          if(key.classList.contains('uppercase') ){
-            key.classList.remove('uppercase');
-            key.classList.add('lowercase');
-          }else{
-            key.classList.remove('lowercase');
-            key.classList.add('uppercase');
-          }
-        }
+        changeKeyCase(key);
       })
       capsLockKey.classList.toggle('caps-active');
     }
   }
 
-  // Checks if CapsLock is pressed or not
-    //return: capsActive{boolean}: true -  letters in uppercase
-    //                             false - letters in lowercase
+  /** Checks if CapsLock is pressed or not
+    * return: {boolean}: true -  letters in uppercase
+                         false - letters in lowercase */
 
   function isCapsActive(){
-    let capsActive = false;
-    if(keyboard.firstChild.classList.contains('uppercase')){
-      capsActive = true;
-    }
-    return capsActive;
+    return keyboard.firstChild.classList.contains('uppercase');
   }
 
-  // Clicking to shift
-    //@e{object} -  addEventListener function event
-    //@keysUnshift{array} - array of letters without shift pressing
-    //@keysShift{array} - array of letters with shift pressing
+  /** Clicking to shift
+    * @e {object} -  addEventListener function event
+    * @keysUnshift {array} - array of letters without shift pressing
+    * @keysShift {array} - array of letters with shift pressing */
 
   function shiftKeyPress(e, keysUnshift, keysShift){
     if((e.key == 'Shift' && e.repeat == false) || e.target.innerText == 'Shift'){
@@ -157,22 +156,14 @@ window.onload = function() {
         }else if(e.type == 'keyup' || e.type == 'mouseup'){
           key.innerText = keysUnshift[index];
         }
-        if(key.innerText.length == 1){
-          if(key.classList.contains('uppercase') ){
-            key.classList.remove('uppercase');
-            key.classList.add('lowercase');
-          }else{
-            key.classList.remove('lowercase');
-            key.classList.add('uppercase');
-          }
-        }
+        changeKeyCase(key);
       })
     }
   }
 
-  // Changes the keyboard's language (eng or rus)
-    //@e{object} -  addEventListener function event
-    //return:  @lang{string}: eng/rus - current keyboard language
+  /** Changes the keyboard's language (eng or rus)
+    * @e {object} -  addEventListener function event
+    * return:  @lang {string}: eng/rus - current keyboard language */
 
   function changeLang(e){
     if(e.ctrlKey && e.altKey){
@@ -206,18 +197,87 @@ window.onload = function() {
 
   function keyActive(e){
     let index = keyCodes.indexOf(e.code);
+    let keyActive = 'key-active';
     if(e.type == 'keydown' && index != -1){
-      keyboard.children[index].classList.add('key_active');
+      keyboard.children[index].classList.add(keyActive);
     }
     if(e.type == 'keyup' && index != -1){
-      keyboard.children[index].classList.remove('key_active');
+      keyboard.children[index].classList.remove(keyActive);
     }
     if(e.target.classList.contains('key')){
       if(e.type == 'mousedown'){
-        e.target.classList.add('key_active');
+        e.target.classList.add(keyActive);
       }
       if(e.type == 'mouseup'){
-        e.target.classList.remove('key_active');
+        e.target.classList.remove(keyActive);
+      }
+    }
+  }
+
+  // Add a letter to the input field by clicking shift or capslock on the physical keyboard
+
+  function letterCase(e, index, keysUnshift, keysShift){
+    let capsLock = isCapsActive();
+    if(e.shiftKey && !capsLock){
+      entryField.value += keysShift[index].toLowerCase();
+    }else if(e.shiftKey){
+      entryField.value += keysShift[index];
+    }else if(capsLock){
+      entryField.value += keysUnshift[index].toUpperCase();
+    }else{
+      entryField.value += keysUnshift[index];
+    }
+  }
+
+  /**
+   * Checks if special key(Alt, Shift, Space, etc) is pressed or not
+   * return: @isPressed {boolean}: true - special key was pressed
+   *                               false - special key wasn't pressed
+   */
+
+  function inputSpecialKeys(e){
+    let isPressed = true;
+    if(e.code == 'Space'){
+      entryField.value += ' ';
+    }else if(e.code == 'Backspace'){
+      entryField.value = entryField.value.substring(0, entryField.value.length - 1);
+    }else if(e.code == 'Tab'){
+      e.preventDefault();
+      entryField.value += '   ';
+    }else if(e.code == 'Enter'){
+      entryField.value += '\n';
+    }else if(e.key == 'Alt'
+          || e.key == 'Control'
+          || e.key == 'Shift'
+          || e.key == 'CapsLock'
+          || e.key == 'Meta'
+          || e.key == 'Delete'
+          || e.key == 'AltGraph'
+    ){
+      e.preventDefault();
+    }else{
+      isPressed = false;
+    }
+    return isPressed;
+  }
+
+  // Letters input from the physical keyboard
+
+  function keyEvent(e){
+    e.preventDefault();
+    // the general condition for 'keyup' and 'keydown'
+    let lang = changeLang(e);
+    let index = keyCodes.indexOf(e.code);
+    keyActive(e);
+    if(e.type == 'keydown' && index != -1){
+      let isSpecialKeyPressed = inputSpecialKeys(e);
+      capsLockKeyPress(e);
+      if(!isSpecialKeyPressed){
+        if (lang == 'eng') {
+          letterCase(e, index, keysEng, keysEngShift);
+        }else{
+          letterCase(e, index, keysRus, keysRusShift);
+        }
       }
     }
   }
@@ -249,59 +309,6 @@ window.onload = function() {
           entryField.value += '';
         }else{
           entryField.value += key;
-        }
-      }
-    }
-  }
-
-  // Letters input from the physical keyboard
-
-  function keyEvent(e){
-    // the general condition for 'keyup' and 'keydown'
-    let lang = changeLang(e);
-    keyActive(e);
-    let index = keyCodes.indexOf(e.code);
-    
-    if(e.type == 'keydown' && index != -1){
-      capsLockKeyPress(e);
-      let capsLock = isCapsActive();
-
-      if(e.code == 'Space'){
-        entryField.value += ' ';
-      }else if(e.code == 'Backspace'){
-        entryField.value = entryField.value.substring(0, entryField.value.length - 1);
-      }else if(e.code == 'Tab'){
-        e.preventDefault();
-        entryField.value += '   ';
-      }else if(e.code == 'Enter'){
-        entryField.value += '\n';
-      }else if(e.key == 'Alt'
-            || e.key == 'Control'
-            || e.key == 'Shift'
-            || e.key == 'CapsLock'
-            || e.key == 'Meta'
-            || e.key == 'Delete'
-      ){
-        e.preventDefault();
-      }else if (lang == 'eng') {
-        if(e.shiftKey && !capsLock){
-          entryField.value += keysEngShift[index].toLowerCase();
-        }else if(e.shiftKey){
-          entryField.value += keysEngShift[index];
-        }else if(capsLock){
-          entryField.value += keysEng[index].toUpperCase();
-        }else{
-          entryField.value += keysEng[index];
-        }
-      }else{
-        if(e.shiftKey && !capsLock){
-          entryField.value += keysRusShift[index].toLowerCase();
-        }else if(e.shiftKey){
-          entryField.value += keysRusShift[index];
-        }else if(capsLock){
-          entryField.value += keysRus[index].toUpperCase();
-        }else{
-          entryField.value += keysRus[index];
         }
       }
     }
